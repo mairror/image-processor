@@ -1,0 +1,36 @@
+{
+  "Records": [{
+    "eventVersion": "2.1",
+    "eventSource": "aws:s3",
+    "awsRegion": "eu-central-1",
+    "eventTime": "2022-03-03T19:19:08.715Z",
+    "eventName": "ObjectCreated:Put",
+    "userIdentity": {
+      "principalId": "AWS:AIDA2VLWVYHKUZVOR4OCR"
+    },
+    "requestParameters": {
+      "sourceIPAddress": ""
+    },
+    "responseElements": {
+      "x-amz-request-id": "RBCVHAN938V2XSZ8",
+      "x-amz-id-2": "aLBJaGDPGUZ7GSfPUk6QlMhY2lxVfLXINOvxZ7jRq11S93qVo0qjbCgBc9ZWxWbrgpz96Luhybw/RSujdUo8wUKAu3zKkvY6"
+    },
+    "s3": {
+      "s3SchemaVersion": "1.0",
+      "configurationId": "new-raw-image",
+      "bucket": {
+        "name": "mairror-test2",
+        "ownerIdentity": {
+          "principalId": "ALQLOMUP4KWMT"
+        },
+        "arn": "arn:aws:s3:::mairror-test2"
+      },
+      "object": {
+        "key": "raw/AQADNbsxG2ntCFF-_147924437.jpg",
+        "size": 159651,
+        "eTag": "fe3ca0fad043c60a0238f59814486d6b",
+        "sequencer": "00622114AC72641109"
+      }
+    }
+  }]
+}
