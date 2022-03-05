@@ -1,22 +1,21 @@
 import json
 from typing import Dict, Union
 
-from config.settings import NUM_MESSAGES, QUEUE_NAME, WAIT_TIME_SECONDS
+from config.settings import NUM_MESSAGES, WAIT_TIME_SECONDS
 
 
-def get_queue_url(sqs_client) -> str:
+def get_queue_url(sqs_client, queue_name: str) -> str:
     """
     Name: get_queue_url
     Description:
         Function to get the url to connect to sqs.
     Inputs:
         :sqs_client: -> Client to connect to sqs.
+        :queue_name: type(str) -> Required. The name of the queue.
     Outputs:
         type(str) -> Return the sqs url.
     """
-    response = sqs_client.get_queue_url(
-        QueueName=QUEUE_NAME,
-    )
+    response = sqs_client.get_queue_url(QueueName=queue_name)
     return response["QueueUrl"]
 
 
@@ -70,3 +69,23 @@ def delete_message(sqs_client, queue_url: str, receipt_handle: str) -> int:
         ReceiptHandle=receipt_handle,
     )
     return response["ResponseMetadata"]["HTTPStatusCode"]
+
+
+def produce_message(sqs_client, queue_url: str, message: Dict) -> Union[int, str]:
+    """
+    Name: produce_message
+    Description:
+        Function to produce events to sqs.
+    Inputs:
+        :message: type(dict) -> Required. The message to be sent to sqs.
+        :queue_url: type(str) -> SQS Url.
+        :sqs_client: -> Client to connect to sqs.
+    Outputs:
+        type(int) -> Return the http code of the produce operation.
+        type(str) -> Return the message id of the produce operation.
+    """
+    response = sqs_client.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(message),
+    )
+    return response["ResponseMetadata"]["HTTPStatusCode"], response["MessageId"]

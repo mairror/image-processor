@@ -2,8 +2,20 @@ from http.client import HTTPException
 
 import boto3
 import requests
-from aws_utils.sqs import delete_message, get_queue_url, receive_message
-from config.settings import API_KEY, API_KEY_HEADER, API_PATH, API_URL
+from aws_utils.sqs import (
+    delete_message,
+    get_queue_url,
+    produce_message,
+    receive_message,
+)
+from config.settings import (
+    API_KEY,
+    API_KEY_HEADER,
+    API_PATH,
+    API_URL,
+    SQS_CROPPED_QUEUE_NAME,
+    SQS_PREDICT_QUEUE_NAME,
+)
 from faces_recon.get_faces import face_detection
 
 
@@ -20,13 +32,16 @@ def main() -> None:
 
     sqs_client = boto3.client("sqs")
     s3_client = boto3.client("s3")
-    queue_url = get_queue_url(sqs_client)
+    crop_queue_url = get_queue_url(sqs_client, SQS_CROPPED_QUEUE_NAME)
+    predict_queue_url = get_queue_url(sqs_client, SQS_PREDICT_QUEUE_NAME)
     while True:
         try:
             s3_object, receipt_handle, message_id = receive_message(
-                sqs_client, queue_url
+                sqs_client, crop_queue_url
             )
-            s3_deleted_object = delete_message(sqs_client, queue_url, receipt_handle)
+            s3_deleted_object = delete_message(
+                sqs_client, crop_queue_url, receipt_handle
+            )
 
             if s3_deleted_object == 200:
                 print(f"Deleted from queue event {message_id}")
@@ -40,6 +55,12 @@ def main() -> None:
 
                 if response.status_code == 200:
                     print(f"{response.text}")
+
+                    status_code, message_id = produce_message(
+                        sqs_client, predict_queue_url, s3_object
+                    )
+                    if status_code == 200:
+                        print(f"Produced to queue event {message_id}")
                 else:
                     raise HTTPException(
                         {"status_code": response.status_code, "detail": response.text}
