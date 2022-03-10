@@ -17,6 +17,7 @@ from config.settings import (
     SQS_PREDICT_QUEUE_NAME,
 )
 from faces_recon.get_faces import face_detection
+from utils.logging import image_processor
 
 
 def main() -> None:
@@ -30,10 +31,15 @@ def main() -> None:
         None
     """
 
+    image_processor.debug("Start sqs and s3 clients")
     sqs_client = boto3.client("sqs")
     s3_client = boto3.client("s3")
+    image_processor.debug("Get the cropped queue url")
     crop_queue_url = get_queue_url(sqs_client, SQS_CROPPED_QUEUE_NAME)
+    image_processor.debug("Get the predict queue url")
     predict_queue_url = get_queue_url(sqs_client, SQS_PREDICT_QUEUE_NAME)
+
+    image_processor.info("Start the sqs listener to get events")
     while True:
         try:
             s3_object, receipt_handle, message_id = receive_message(
