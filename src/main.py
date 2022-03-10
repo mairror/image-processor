@@ -32,14 +32,22 @@ def main() -> None:
     """
 
     image_processor.debug("Start sqs and s3 clients")
-    sqs_client = boto3.client("sqs")
-    s3_client = boto3.client("s3")
-    image_processor.debug("Get the cropped queue url")
-    crop_queue_url = get_queue_url(sqs_client, SQS_CROPPED_QUEUE_NAME)
-    image_processor.debug("Get the predict queue url")
-    predict_queue_url = get_queue_url(sqs_client, SQS_PREDICT_QUEUE_NAME)
+    try:
+        sqs_client = boto3.client("sqs")
+        s3_client = boto3.client("s3")
+        image_processor.debug("Get the cropped queue url")
+        crop_queue_url = get_queue_url(sqs_client, SQS_CROPPED_QUEUE_NAME)
+        image_processor.debug("Get the predict queue url")
+        predict_queue_url = get_queue_url(sqs_client, SQS_PREDICT_QUEUE_NAME)
 
-    image_processor.info("Start the sqs listener to get events")
+        image_processor.info("Start the sqs listener to get events")
+    except Exception as e:
+        image_processor.error(
+            "There was an error connecting to aws. "
+            "Check the aws credentials and the default region. "
+            f"{e}"
+        )
+
     while True:
         try:
             s3_object, receipt_handle, message_id = receive_message(
@@ -72,10 +80,13 @@ def main() -> None:
                         {"status_code": response.status_code, "detail": response.text}
                     )
         except KeyError as key_error:
-            print(f"KeyError: No key {key_error} found")
+            image_processor.error(f"KeyError: No key {key_error} found")
             continue
         except HTTPException as e:
-            print(e)
+            image_processor.error(f"{e}")
+            continue
+        except Exception as ex:
+            image_processor.error(f"{ex}")
             continue
 
 
